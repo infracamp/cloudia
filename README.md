@@ -12,3 +12,12 @@ cloudia -h
 ```bash
 cloudia create_keypair
 ```
+
+
+## Develop
+
+Start the development container
+
+```bash
+./kickstart.sh
+```
