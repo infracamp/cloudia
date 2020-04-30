@@ -1,0 +1,10 @@
+Some description that is very informative here
+
+Parameters:
+    -h          Print this help
+    -v          Be verbose
+
+Commands:
+    create_keypair  Create new key pair
+
+    say_hello   Say hello and exit

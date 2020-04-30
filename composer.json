@@ -1,0 +1,34 @@
+{
+    "name": "infracamp/cloudia",
+    "type": "library",
+    "description": "Cloud Infrastructure Administration Tools",
+    "keywords": ["Cloud", "Secrets", "CloudIA"],
+    "homepage": "https://infracamp.com/phore",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Joe Koshy Alex",
+            "email": "joe@talpa-solutions.com"
+        },
+        {
+            "name": "Matthias Leuffen",
+            "email": "m@tth.es"
+        }
+    ],
+    "require": {
+        "php": ">=7.2",
+        "phore/core": "*",
+        "phore/cli-tools": "*"
+    },
+    "bin": "bin",
+
+    "require-dev": {
+        "phore/tester": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "Cloudia\\": "src"
+        }
+    },
+    "minimum-stability": "dev"
+}
