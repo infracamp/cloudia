@@ -6,5 +6,5 @@ Parameters:
 
 Commands:
     create_keypair  Create new key pair
-
-    say_hello   Say hello and exit
+    say_hello       Say hello and exit
+    open_editor     Open the editor and show results

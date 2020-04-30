@@ -18,7 +18,9 @@
     "require": {
         "php": ">=7.2",
         "phore/core": "*",
-        "phore/cli-tools": "*"
+        "phore/cli-tools": "*",
+        "phore/filesystem": "*",
+        "phore/system": "*"
     },
     "bin": "bin",
 
