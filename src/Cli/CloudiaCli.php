@@ -42,6 +42,7 @@ class CloudiaCli extends PhoreAbstractCli
 
             // open the default editor to enter some secret
             "open_editor" => function(array $argv) {
+
                 $tmpFile = new PhoreTempFile();
 
                 // Open the editor
