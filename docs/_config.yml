@@ -1,0 +1,20 @@
+title: cloudIA - Cloud Infrastrcuture Automation
+description: educational grade development tools
+google_analytics:
+show_downloads: true
+
+# Make directory-style links
+permalink: pretty
+
+defaults:
+  - scope:
+      path: "_posts"
+    values:
+      layout: "posts"
+
+sass:
+  style: compressed
+  sass_dir: _sass
+
+plugins:
+- jekyll-optional-front-matter
