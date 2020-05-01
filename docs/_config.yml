@@ -7,14 +7,5 @@ show_downloads: true
 permalink: pretty
 
 defaults:
-  - scope:
-      path: "_posts"
-    values:
-      layout: "posts"
-
-sass:
-  style: compressed
-  sass_dir: _sass
-
 plugins:
 - jekyll-optional-front-matter
