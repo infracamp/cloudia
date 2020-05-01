@@ -7,5 +7,10 @@ show_downloads: true
 permalink: pretty
 
 defaults:
+  - scope:
+      path: ""
+    values:
+      layout: "default"
+
 plugins:
 - jekyll-optional-front-matter
