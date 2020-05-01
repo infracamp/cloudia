@@ -11,6 +11,7 @@ defaults:
       path: ""
     values:
       layout: "default"
+      title: developer camp
 
 plugins:
 - jekyll-optional-front-matter
