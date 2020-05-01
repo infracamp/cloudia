@@ -1,4 +1,6 @@
-# CloudIA - Cloud Infrastructure Architcture Toools
+# CloudIA - Cloud Infrastructure Automation
+
+
 
 
 ## Examples
