@@ -32,7 +32,7 @@ class CloudiaCli extends PhoreAbstractCli
     protected function main(array $argv, int $argc, GetOptResult $opts)
     {
         $this->execMap([
-            "create_keypair" => function (array $argv) {
+            "init" => function (array $argv) {
                 $this->out("Hello world", print_r($argv, true));
             },
 
