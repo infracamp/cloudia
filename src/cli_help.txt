@@ -1,10 +1,8 @@
-Some description that is very informative here
-
-Parameters:
-    -h          Print this help
-    -v          Be verbose
+  -f                 Specify the input file
 
 Commands:
-    create_keypair  Create new key pair
-    say_hello       Say hello and exit
-    open_editor     Open the editor and show results
+  create_keypair     Create new key pair
+  say_hello          Say hello and exit
+  open_editor        Open the editor and show results
+
+Informative description here

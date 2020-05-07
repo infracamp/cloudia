@@ -34,6 +34,7 @@ class CloudiaCli extends PhoreAbstractCli
     protected function main(array $argv, int $argc, GetOptResult $opts)
     {
         $this->execMap([
+<<<<<<< HEAD
             "create_keypair" => function (array $argv) {
                 $asyncEncrypter = new PhoreSecretBoxAsync();
                 $this->out("Enter passphrase for encrypting the private key:");
@@ -80,6 +81,10 @@ class CloudiaCli extends PhoreAbstractCli
                 $privateKey=$syncEncrypter->decrypt($privateKey);
                 $this->out("Decrypted Secret->" . PHP_EOL);
                 $this->out($asyncEncrypter->decrypt($secret, $privateKey) . PHP_EOL);
+=======
+            "init" => function (array $argv) {
+                $this->out("Hello world", print_r($argv, true));
+>>>>>>> 1451654c43af5cbd6027807daa9b293d06d96cc9
             },
 
             "say_hello" => function (array $argv) {
