@@ -17,7 +17,7 @@
     ],
     "require": {
         "php": ">=7.2",
-        "phore/core": "*",
+        "phore/core": "dev-asymmetric-encrypt",
         "phore/cli-tools": "*",
         "phore/filesystem": "*",
         "phore/system": "*"

@@ -7,6 +7,8 @@ namespace Cloudia\Cli;
 use Phore\CliTools\Helper\GetOptResult;
 use Phore\CliTools\PhoreAbstractCli;
 use Phore\FileSystem\PhoreTempFile;
+use Phore\Core\Helper\PhoreSecretBoxAsync;
+use Phore\Core\Helper\PhoreSecretBoxSync;
 
 class CloudiaCli extends PhoreAbstractCli
 {
@@ -33,7 +35,51 @@ class CloudiaCli extends PhoreAbstractCli
     {
         $this->execMap([
             "create_keypair" => function (array $argv) {
-                $this->out("Hello world", print_r($argv, true));
+                $asyncEncrypter = new PhoreSecretBoxAsync();
+                $this->out("Enter passphrase for encrypting the private key:");
+                $handle = fopen ("php://stdin","r");
+                $passphrase = fgets($handle);
+                fclose($handle);
+                $syncEncrypter = new PhoreSecretBoxSync($passphrase);
+                $keys = $asyncEncrypter->createKeyPair();
+                $this->out(print_r([
+                    "public_key" => $keys["public_key"],
+                    "private_key" => $syncEncrypter->encrypt($keys["private_key"])
+                ], true));
+            },
+
+            "encrypt_async" => function (array $argv) {
+                $asyncEncrypter = new PhoreSecretBoxAsync();
+                $this->out("Enter public key for encrypting secret:");
+                $handle = fopen ("php://stdin","r");
+                $publicKey = fgets($handle);
+                fclose($handle);
+                $this->out("Enter the secret which needs to be encrypted:");
+                $handle = fopen ("php://stdin","r");
+                $secret = fgets($handle);
+                fclose($handle);
+                $this->out("Encrypted Secret->" . PHP_EOL);
+                $this->out($asyncEncrypter->encrypt($secret, $publicKey) . PHP_EOL);
+            },
+
+            "decrypt_async" => function (array $argv) {
+                $asyncEncrypter = new PhoreSecretBoxAsync();
+                $this->out("Enter passphrase for decrypting the private key:");
+                $handle = fopen ("php://stdin","r");
+                $passphrase = fgets($handle);
+                fclose($handle);
+                $this->out("Enter the encrypted private key:");
+                $handle = fopen ("php://stdin","r");
+                $privateKey = fgets($handle);
+                fclose($handle);
+                $this->out("Enter the secret which needs to be decrypted:");
+                $handle = fopen ("php://stdin","r");
+                $secret = fgets($handle);
+                fclose($handle);
+                $syncEncrypter = new PhoreSecretBoxSync($passphrase);
+                $privateKey=$syncEncrypter->decrypt($privateKey);
+                $this->out("Decrypted Secret->" . PHP_EOL);
+                $this->out($asyncEncrypter->decrypt($secret, $privateKey) . PHP_EOL);
             },
 
             "say_hello" => function (array $argv) {
