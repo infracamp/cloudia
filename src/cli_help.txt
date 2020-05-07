@@ -2,6 +2,8 @@
 
 Commands:
   create_keypair     Create new key pair
+  encrypt_async      Asynchronous Encryption using public key
+  decrypt_async      Asynchronous Decryption using encrypted private key and passphrase
   say_hello          Say hello and exit
   open_editor        Open the editor and show results
 
