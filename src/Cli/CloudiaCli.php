@@ -3,7 +3,7 @@
 
 namespace Cloudia\Cli;
 
-
+use Phore\Core\Exception\NotFoundException;
 use Phore\CliTools\Helper\GetOptResult;
 use Phore\CliTools\PhoreAbstractCli;
 use Phore\FileSystem\PhoreTempFile;
@@ -34,59 +34,84 @@ class CloudiaCli extends PhoreAbstractCli
     protected function main(array $argv, int $argc, GetOptResult $opts)
     {
         $this->execMap([
-            "create_keypair" => function (array $argv) {
+            "init" => function (array $argv) {
                 $asyncEncrypter = new PhoreSecretBoxAsync();
-                $secFile = getcwd() . "/sec.json";
-                $this->out("Enter passphrase for encrypting the private key(Leave empty to generate):");
-                $handle = fopen ("php://stdin","r");
-                $passphrase = fgets($handle);
-                fclose($handle);
+                $cloudiaFile = getcwd() . "/cloudia.yaml";
 
-                if(ctype_space($passphrase)) {
-                    $passphrase = phore_random_str(45);
-                    $this->out("Random passphrase->" . PHP_EOL);
-                    $this->out($passphrase . PHP_EOL);
+                if(phore_file($cloudiaFile)->isFile()) {
+                    $this->out("Key file(cloudia.yaml) exists, Do you want to create new?(Y/N): ");
+                    $handle = fopen ("php://stdin","r");
+                    $isRequired = fgets($handle);
+                    fclose($handle);
+                } else {
+                    $isRequired = "Y" . PHP_EOL;
                 }
-                $syncEncrypter = new PhoreSecretBoxSync($passphrase);
-                $keys = $asyncEncrypter->createKeyPair();
-                $keys["private_key"] = $syncEncrypter->encrypt($keys["private_key"]);
-
-                phore_file($secFile)->set_json(["sec" => $keys]);
-                $this->out("Keys saved in-> " . $secFile . PHP_EOL);
+                if(strcasecmp("Y" . PHP_EOL, $isRequired) == 0) {
+                    $this->out("Enter passphrase for encrypting the private key(Leave empty to generate):");
+                    $handle = fopen ("php://stdin","r");
+                    $passphrase = fgets($handle);
+                    fclose($handle);
+    
+                    if(ctype_space($passphrase)) {
+                        $passphrase = phore_random_str(45);
+                        $this->out("Random passphrase->" . PHP_EOL);
+                        $this->out($passphrase . PHP_EOL);
+                    }
+                    $syncEncrypter = new PhoreSecretBoxSync($passphrase);
+                    $keys = $asyncEncrypter->createKeyPair();
+                    $keys["private_key"] = $syncEncrypter->encrypt($keys["private_key"]);
+    
+                    phore_file($cloudiaFile)->set_yaml(["sec" => $keys]);
+                    $this->out("Keys saved in-> " . $cloudiaFile . PHP_EOL);
+                } else {
+                    $this->out("New keys are NOT generated " . PHP_EOL);
+                } 
             },
 
             "encrypt_async" => function (array $argv) {
+                $cloudiaFile = getcwd() . "/cloudia.yaml";
                 $asyncEncrypter = new PhoreSecretBoxAsync();
-                $this->out("Enter public key for encrypting secret:");
-                $handle = fopen ("php://stdin","r");
-                $publicKey = fgets($handle);
-                fclose($handle);
-                $this->out("Enter the secret which needs to be encrypted:");
-                $handle = fopen ("php://stdin","r");
-                $secret = fgets($handle);
-                fclose($handle);
-                $this->out("Encrypted Secret->" . PHP_EOL);
-                $this->out($asyncEncrypter->encrypt($secret, $publicKey) . PHP_EOL);
+                $tmpFile = new PhoreTempFile();
+
+                if(phore_file($cloudiaFile)->isFile()) {
+                    $keys = phore_file($cloudiaFile)->get_yaml();
+                    $publicKey = $keys["sec"]["public_key"];
+                    $this->out("Enter the secret which needs to be encrypted:" . PHP_EOL);
+                    passthru("editor $tmpFile");
+                    $secret = $tmpFile->get_contents();
+                    $this->out("Encrypted Secret->" . PHP_EOL);
+                    $this->out($asyncEncrypter->encrypt($secret, $publicKey) . PHP_EOL);
+                } else {
+                    throw new NotFoundException("Key file(cloudia.yaml) not found. Run 'cloudia init' to generate");
+                }         
             },
 
             "decrypt_async" => function (array $argv) {
                 $asyncEncrypter = new PhoreSecretBoxAsync();
-                $this->out("Enter passphrase for decrypting the private key:");
-                $handle = fopen ("php://stdin","r");
-                $passphrase = fgets($handle);
-                fclose($handle);
-                $this->out("Enter the encrypted private key:");
-                $handle = fopen ("php://stdin","r");
-                $privateKey = fgets($handle);
-                fclose($handle);
-                $this->out("Enter the secret which needs to be decrypted:");
-                $handle = fopen ("php://stdin","r");
-                $secret = fgets($handle);
-                fclose($handle);
-                $syncEncrypter = new PhoreSecretBoxSync($passphrase);
-                $privateKey=$syncEncrypter->decrypt($privateKey);
-                $this->out("Decrypted Secret->" . PHP_EOL);
-                $this->out($asyncEncrypter->decrypt($secret, $privateKey) . PHP_EOL);
+                $cloudiaFile = getcwd() . "/cloudia.yaml";
+                if(phore_file($cloudiaFile)->isFile()) {
+                    if(empty($argv)) {
+                        $this->out("Enter passphrase for decrypting the private key:");
+                        $handle = fopen ("php://stdin","r");
+                        $passphrase = fgets($handle);
+                        fclose($handle);
+                    } else {
+                        $passphrase = $argv[0];
+                    }
+                    
+                    $keys = phore_file($cloudiaFile)->get_yaml();
+                    $privateKey = $keys["sec"]["private_key"];
+                    $this->out("Enter the secret which needs to be decrypted:");
+                    $handle = fopen ("php://stdin","r");
+                    $secret = fgets($handle);
+                    fclose($handle);
+                    $syncEncrypter = new PhoreSecretBoxSync($passphrase);
+                    $privateKey=$syncEncrypter->decrypt($privateKey);
+                    $this->out("Decrypted Secret->" . PHP_EOL);
+                    $this->out($asyncEncrypter->decrypt($secret, $privateKey) . PHP_EOL);
+                } else {
+                    throw new NotFoundException("Key file(cloudia.yaml) not found.");
+                }       
             },
 
             "say_hello" => function (array $argv) {
