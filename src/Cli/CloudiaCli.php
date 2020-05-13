@@ -3,6 +3,7 @@
 
 namespace Cloudia\Cli;
 
+use Phore\CliTools\Helper\ColorOutput;
 use Phore\Core\Exception\NotFoundException;
 use Phore\CliTools\Helper\GetOptResult;
 use Phore\CliTools\PhoreAbstractCli;
@@ -38,9 +39,12 @@ class CloudiaCli extends PhoreAbstractCli
         $this->execMap([
             "init" => function (array $argv) {
                 $asyncEncrypter = new PhoreSecretBoxAsync();
+                //Defaults to current folder
                 $cloudiaFile = getcwd() . "/cloudia.yaml";
                 $skip_prompt = false;
                 $passphrase = "";
+
+                //Evaluate flags
                 if(!empty($argv)) {
                     for ($i=0, $len=count($argv); $i<$len; $i++) {
                         if($argv[$i] === "--yes" || $argv[$i] === "-y") {
@@ -53,6 +57,8 @@ class CloudiaCli extends PhoreAbstractCli
                         }
                     }
                 }
+
+                //Skipping std input if flag -y is set
                 if(!$skip_prompt) {
                     $isRequired = "Y" . PHP_EOL;
                     if(phore_file($cloudiaFile)->isFile()) {
@@ -60,18 +66,26 @@ class CloudiaCli extends PhoreAbstractCli
                         $handle = fopen ("php://stdin","r");
                         $isRequired = fgets($handle);
                         fclose($handle);
-                    } 
+                    }
+
                     if(strcasecmp("Y" . PHP_EOL, $isRequired) == 0) {
+                        //Check if Passphrase is set using argumnets
                         if(empty($passphrase)) {
                             $this->out("Enter passphrase for encrypting the private key(Leave empty to generate):");
                             $handle = fopen ("php://stdin","r");
                             $passphrase = fgets($handle);
                             fclose($handle);
                         }
+                    }
+                    //End execution if user input is N
+                    else if(strcasecmp("N" . PHP_EOL, $isRequired) == 0) {
+                        $this->emergency(ColorOutput::Str("New keys are NOT generated" , "red") . PHP_EOL);
+                        return;
                     } else {
-                        throw new InvalidDataException("New keys are NOT generated");
+                        throw new InvalidDataException("Invalid option ". $isRequired . "New keys are NOT generated");
                     }
                 }
+                //Generate passphrase if no user input
                 $passphrase = trim($passphrase);
                 if(empty($passphrase)) {
                     $passphrase = phore_random_str(45);
@@ -81,56 +95,63 @@ class CloudiaCli extends PhoreAbstractCli
                 $syncEncrypter = new PhoreSecretBoxSync($passphrase);
                 $keys = $asyncEncrypter->createKeyPair();
                 $keys["private_key"] = $syncEncrypter->encrypt($keys["private_key"]);
-
+                //Write the keys to file
                 phore_file($cloudiaFile)->set_yaml(["sec" => $keys]);
                 $this->out("Keys saved in-> " . $cloudiaFile . PHP_EOL);
             },
 
-            "encrypt_async" => function (array $argv) {
+            "encrypt" => function (array $argv) {
                 $asyncEncrypter = new PhoreSecretBoxAsync();
                 $tmpFile = new PhoreTempFile();
+                //Defaults to current folder
                 $folder = getcwd();
+                //Evaluate flags
                 if(!empty($argv)) {
                     for ($i=0, $len=count($argv); $i<$len; $i+=2) {
-                        if($argv[$i] === "--volume" || $argv[$i] === "-v") {
+                        if($argv[$i] === "--directory" || $argv[$i] === "-C") {
                             $folder = $argv[$i+1];
                         }
-                        else if($argv[$i] === "--input" || $argv[$i] === "-i") {
+                        else if($argv[$i] === "--input" || $argv[$i] === "-I") {
                             $secret = $argv[$i+1];
                         } else {
                             throw new InvalidDataException("Invalid argument:" . $argv[$i]);
                         }
                     }
                 }
+                //Get public key from yaml file
                 $cloudiaFile = $folder . "/cloudia.yaml";
                 if(phore_file($cloudiaFile)->isFile()) {
                     $keys = phore_file($cloudiaFile)->get_yaml();
                     $publicKey = $keys["sec"]["public_key"];
                 } else {
                     throw new NotFoundException("Key file(cloudia.yaml) not found. Run 'cloudia init' to generate or specify the folder with -f flag");
-                }       
+                }
+                //Prompt if input which needs to be encrypted is not provided      
                 if(empty($secret)) {
                     $this->out("Enter the secret which needs to be encrypted:" . PHP_EOL);
                     passthru("editor $tmpFile");
                     $secret = $tmpFile->get_contents();
                 }
+                //Write the encrypted input to std out
                 $secret=trim($secret);
                 if(!empty($secret)) {
                     $this->out("Encrypted Secret->" . PHP_EOL);
-                    $this->out($asyncEncrypter->encrypt($secret, $publicKey) . PHP_EOL);    
+                    $this->out("{ENC-" . $asyncEncrypter->encrypt($secret, $publicKey) . "}" . PHP_EOL);    
                 } else {
                     throw new InvalidDataException("Invalid secret: secret is blank or only whitespaces");
                 }
                              
             },
 
-            "decrypt_async" => function (array $argv) {
+            "decrypt" => function (array $argv) {
+                //Defaults to current folder
                 $folder = getcwd();
                 $asyncEncrypter = new PhoreSecretBoxAsync();
                 $extension = [];
+                //Evaluate flags
                 if(!empty($argv)) {
                     for ($i=0, $len=count($argv); $i<$len; $i+=2) {
-                        if($argv[$i] === "--volume" || $argv[$i] === "-v") {
+                        if($argv[$i] === "--directory" || $argv[$i] === "-C") {
                             $folder = $argv[$i+1];
                         }
                         else if($argv[$i] === "--passphrase" || $argv[$i] === "-p") {
@@ -153,7 +174,7 @@ class CloudiaCli extends PhoreAbstractCli
                 } else {
                     throw new NotFoundException("Key file(cloudia.yaml) not found in " . $folder);
                 }
-                  
+                // prompt if passphrase to decrypt private key is not provided as arguments  
                 if(empty($passphrase)) {
                     $this->out("Enter passphrase for decrypting the private key:");
                     $handle = fopen ("php://stdin","r");
@@ -161,9 +182,11 @@ class CloudiaCli extends PhoreAbstractCli
                     fclose($handle);
                 }
 
+                //Symmetric decrypt private key
                 $syncEncrypter = new PhoreSecretBoxSync($passphrase);
                 $privateKey = $syncEncrypter->decrypt($privateKey);
 
+                //Recursively walking through the folder for matching file types
                 $this->out("Recursively looking for ". implode(",",$extension) ." files in -> " . $folder . PHP_EOL);
                 $phoreDir = new PhoreDirectory($folder);
                 $phoreDir -> walkR(function($file) use ($asyncEncrypter, $privateKey, $extension) {
@@ -171,14 +194,16 @@ class CloudiaCli extends PhoreAbstractCli
                     if(in_array($phoreFile->getExtension(), $extension)) {
                         $this->out("Processing...." . $phoreFile->getFilename() . PHP_EOL);
                         $contents = $phoreFile->get_contents();
-                        preg_match_all("/{sec-(.+?)}/", $contents, $secrets, PREG_SET_ORDER);
+                        //Get the encrypted text, decrypt and replace
+                        preg_match_all("/{ENC-(.+?)}/", $contents, $secrets, PREG_SET_ORDER);
                         if(!empty($secrets)) {
                             $this->out("Replacing secrets in file -> " . $phoreFile->getFilename() . PHP_EOL);
                             foreach($secrets as $secret) {
                                 $contents = str_replace($secret[0], str_replace("\n", "", 
                                                 $asyncEncrypter->decrypt($secret[1], $privateKey)), $contents);
                             }
-                            $phoreFile->set_contents($contents);
+                        // Write the content back to file
+                        $phoreFile->set_contents($contents);
                         }
                     } 
                  });  
