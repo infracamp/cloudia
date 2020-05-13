@@ -1,10 +1,16 @@
   -f                 Specify the input file
 
 Commands:
-  create_keypair     Create new key pair
+  init               Create new key pair
   encrypt_async      Asynchronous Encryption using public key
   decrypt_async      Asynchronous Decryption using encrypted private key and passphrase
-  say_hello          Say hello and exit
-  open_editor        Open the editor and show results
 
-Informative description here
+ARGUMENTS
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+init          | -y --yes          | Give yes to all prompts (Overwite cloudia.yaml file if exists and auto generate passphrase if -p flag not provided).
+init          | -p --passphrase   | Passphrase for encrypting the private key. Will prompt if not provided.
+encrypt_async | -v --volume       | Directory where cloudia.yaml file exists. Defaults to current directory.
+encrypt_async | -i --input        | Secret which needs to be encrypted. Will prompt if not provided.
+decrypt_async | -v --volume       | cloudia.yaml must be in this folder. Recursively look for files for secrets to be decrypted in this folder. Defaults to current directory. 
+decrypt_async | -t --type         | Extension of files which contains secrets to be decrypted. Defaults to values yaml & yml.
+
