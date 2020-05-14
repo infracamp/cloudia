@@ -18,16 +18,10 @@ your DevOps Developers.
 
 ## Installation
 
-**Install with npm**
-
-```bash
-npm install -g infracamp/cloudia
-```
-
 **Install with composer**
 
 ```bash
-composer install -g infracamp/cloudia
+composer global install infracamp/cloudia
 ```
 
 ## Usage
