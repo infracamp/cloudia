@@ -1,6 +1,6 @@
 {
     "name": "infracamp/cloudia",
-    "type": "library",
+    "type": "project",
     "description": "Cloud Infrastructure Administration Tools",
     "keywords": ["Cloud", "Secrets", "CloudIA"],
     "homepage": "https://cloudia.infracamp.com",
