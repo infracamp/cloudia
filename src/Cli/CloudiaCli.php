@@ -138,7 +138,7 @@ class CloudiaCli extends PhoreAbstractCli
                 $secret=trim($secret);
                 if(!empty($secret)) {
                     $this->out("Your Encrypted Secret is" . PHP_EOL);
-                    $this->out("{ENC-" . $asyncEncrypter->encrypt($secret, $publicKey) . "}" . PHP_EOL);
+                    $this->out("ENC-{" . $asyncEncrypter->encrypt($secret, $publicKey) . "}" . PHP_EOL);
                     $this->out("Please copy this encrypted secret into the pod/kube/key files" . PHP_EOL );    
                 } else {
                     throw new InvalidDataException("Invalid secret: secret is blank or only whitespaces");
@@ -200,12 +200,11 @@ class CloudiaCli extends PhoreAbstractCli
                         $this->out("Processing...." . $phoreFile->getFilename() . PHP_EOL);
                         $contents = $phoreFile->get_contents();
                         //Get the encrypted text, decrypt and replace
-                        preg_match_all("/{ENC-(.+?)}/", $contents, $secrets, PREG_SET_ORDER);
+                        preg_match_all("/ENC-{(.+?)}/", $contents, $secrets, PREG_SET_ORDER);
                         if(!empty($secrets)) {
                             $this->out("Replacing secrets in file " . $phoreFile->getFilename() . PHP_EOL);
                             foreach($secrets as $secret) {
-                                $contents = str_replace($secret[0], str_replace("\n", "", 
-                                                $asyncEncrypter->decrypt($secret[1], $privateKey)), $contents);
+                                $contents = str_replace($secret[0], $asyncEncrypter->decrypt($secret[1], $privateKey), $contents);
                             }
                         // Write the content back to file
                         $phoreFile->set_contents($contents);
