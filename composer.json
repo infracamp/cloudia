@@ -22,7 +22,9 @@
         "phore/filesystem": "^1.0",
         "phore/system": "^1.0"
     },
-    "bin": "bin",
+    "bin": [
+        "bin/cloudia"
+    ],
 
     "require-dev": {
         "phore/tester": "*"
