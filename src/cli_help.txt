@@ -14,3 +14,5 @@ encrypt  | -I --input        | Secret which needs to be encrypted. Will prompt i
 decrypt  | -C --directory    | cloudia.yaml must be in this folder. Recursively look for files for secrets to be decrypted in this folder. Defaults to current directory. 
 decrypt  | -t --type         | Extension of files which contains secrets to be decrypted. Defaults to values yaml & yml.
 
+More information:
+  https://cloudia.infracamp.org
