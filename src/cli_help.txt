@@ -11,7 +11,8 @@ init     | -y --yes          | Give yes to all prompts (Overwite cloudia.yaml fi
 init     | -p --passphrase   | Passphrase for encrypting the private key. Will prompt if not provided.
 encrypt  | -C --directory    | Directory where cloudia.yaml file exists. Defaults to current directory.
 encrypt  | -I --input        | Secret which needs to be encrypted. Will prompt if not provided.
-decrypt  | -C --directory    | cloudia.yaml must be in this folder. Recursively look for files for secrets to be decrypted in this folder. Defaults to current directory. 
+decrypt  | -C --directory    | cloudia.yaml must be available in this folder. Recursively look for files for secrets to be decrypted in this folder. Defaults to current directory. 
+decrypt  | -p --passphrase   | Passphrase for decrypting the private key. Will prompt if not provided or environment variable "CLOUDIA_SECRET" is not provided.
 decrypt  | -t --type         | Extension of files which contains secrets to be decrypted. Defaults to values yaml & yml.
 
 More information:

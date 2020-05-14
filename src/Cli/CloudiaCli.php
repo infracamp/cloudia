@@ -89,15 +89,17 @@ class CloudiaCli extends PhoreAbstractCli
                 $passphrase = trim($passphrase);
                 if(empty($passphrase)) {
                     $passphrase = phore_random_str(45);
-                    $this->out("Random passphrase->" . PHP_EOL);
-                    $this->out($passphrase . PHP_EOL);
                 }
                 $syncEncrypter = new PhoreSecretBoxSync($passphrase);
                 $keys = $asyncEncrypter->createKeyPair();
                 $keys["private_key"] = $syncEncrypter->encrypt($keys["private_key"]);
                 //Write the keys to file
                 phore_file($cloudiaFile)->set_yaml(["sec" => $keys]);
-                $this->out("Keys saved in-> " . $cloudiaFile . PHP_EOL);
+                $this->out("A new keypair was generated in " . $cloudiaFile . PHP_EOL);
+                $this->out("Your decrypt key is" . PHP_EOL);
+                $this->out($passphrase . PHP_EOL);
+                $this->out("Please copy this decrypt key into your Jenkins/GitlabCI/GithubActions" . PHP_EOL);
+                $this->out("Secret Name CLOUDIA_SECRET" . PHP_EOL);
             },
 
             "encrypt" => function (array $argv) {
@@ -135,8 +137,9 @@ class CloudiaCli extends PhoreAbstractCli
                 //Write the encrypted input to std out
                 $secret=trim($secret);
                 if(!empty($secret)) {
-                    $this->out("Encrypted Secret->" . PHP_EOL);
-                    $this->out("{ENC-" . $asyncEncrypter->encrypt($secret, $publicKey) . "}" . PHP_EOL);    
+                    $this->out("Your Encrypted Secret is" . PHP_EOL);
+                    $this->out("{ENC-" . $asyncEncrypter->encrypt($secret, $publicKey) . "}" . PHP_EOL);
+                    $this->out("Please copy this encrypted secret into the pod/kube/key files" . PHP_EOL );    
                 } else {
                     throw new InvalidDataException("Invalid secret: secret is blank or only whitespaces");
                 }
@@ -189,7 +192,7 @@ class CloudiaCli extends PhoreAbstractCli
                 $privateKey = $syncEncrypter->decrypt($privateKey);
 
                 //Recursively walking through the folder for matching file types
-                $this->out("Recursively looking for ". implode(",",$extension) ." files in -> " . $folder . PHP_EOL);
+                $this->out("Recursively looking for ". implode(",",$extension) ." files in " . $folder . PHP_EOL);
                 $phoreDir = new PhoreDirectory($folder);
                 $phoreDir -> walkR(function($file) use ($asyncEncrypter, $privateKey, $extension) {
                     $phoreFile=phore_file($file);
@@ -199,7 +202,7 @@ class CloudiaCli extends PhoreAbstractCli
                         //Get the encrypted text, decrypt and replace
                         preg_match_all("/{ENC-(.+?)}/", $contents, $secrets, PREG_SET_ORDER);
                         if(!empty($secrets)) {
-                            $this->out("Replacing secrets in file -> " . $phoreFile->getFilename() . PHP_EOL);
+                            $this->out("Replacing secrets in file " . $phoreFile->getFilename() . PHP_EOL);
                             foreach($secrets as $secret) {
                                 $contents = str_replace($secret[0], str_replace("\n", "", 
                                                 $asyncEncrypter->decrypt($secret[1], $privateKey)), $contents);
@@ -208,7 +211,8 @@ class CloudiaCli extends PhoreAbstractCli
                         $phoreFile->set_contents($contents);
                         }
                     } 
-                 });  
+                });
+                $this->out("All files processed successfully." . PHP_EOL); 
             },
         ]);
     }
