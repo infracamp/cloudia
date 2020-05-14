@@ -148,6 +148,8 @@ class CloudiaCli extends PhoreAbstractCli
                 $folder = getcwd();
                 $asyncEncrypter = new PhoreSecretBoxAsync();
                 $extension = [];
+                //get passphrase from environment variable if available
+                $passphrase = getenv("CLOUDIA_SECRET");
                 //Evaluate flags
                 if(!empty($argv)) {
                     for ($i=0, $len=count($argv); $i<$len; $i+=2) {
