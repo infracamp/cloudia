@@ -3,7 +3,7 @@
     "type": "library",
     "description": "Cloud Infrastructure Administration Tools",
     "keywords": ["Cloud", "Secrets", "CloudIA"],
-    "homepage": "https://infracamp.com/phore",
+    "homepage": "https://cloudia.infracamp.com",
     "license": "MIT",
     "authors": [
         {
@@ -17,10 +17,10 @@
     ],
     "require": {
         "php": ">=7.2",
-        "phore/core": "dev-asymmetric-encrypt",
-        "phore/cli-tools": "*",
-        "phore/filesystem": "*",
-        "phore/system": "*"
+        "phore/core": "^1.0",
+        "phore/cli-tools": "^1.0",
+        "phore/filesystem": "^1.0",
+        "phore/system": "^1.0"
     },
     "bin": "bin",
 
